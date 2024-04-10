@@ -9,7 +9,8 @@ import uvicorn
 
 app = FastAPI()
 
-MODEL = tf.keras.models.load_model("../models/epoch50.keras")
+# MODEL = tf.keras.models.load_model("../models/epoch50.keras")
+MODEL = tf.keras.models.load_model("./epoch50.keras")
 
 CLASS_NAMES = ["Acne", "Dry", "Normal", "Oily"]
 
@@ -34,7 +35,9 @@ app.add_middleware(
     allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*",]
+    allow_headers=[
+        "*",
+    ],
 )
 
 
@@ -47,7 +50,7 @@ async def root():
 async def skin_level(file: UploadFile = File(...)):
 
     image = preprocess_image(await file.read())
-    print('File read')
+    print("File read")
 
     prediction = MODEL.predict(np.expand_dims(image, axis=0))
     confidence = round(100 * (np.max(prediction[0])), 2)
@@ -55,10 +58,8 @@ async def skin_level(file: UploadFile = File(...)):
     class_index = np.argmax(prediction)
     skin_type = CLASS_NAMES[class_index]
 
-    return {
-        'skin_type': skin_type,
-        'confidence': confidence
-    }
+    return {"skin_type": skin_type, "confidence": confidence}
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="localhost", port=8000, reload=True)
